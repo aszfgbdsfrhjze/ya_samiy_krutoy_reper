@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Музыкальная карточка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            padding: 20px;
+        }
+        
+        .music-card {
+            position: absolute;
+            width: 90%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .music-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .cover {
+            width: 100%;
+            height: 200px;
+            border-radius: 15px;
+            object-fit: cover;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .song-info {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .song-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .artist {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+        }
+        
+        .audio-player {
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        /* Скрываем стандартный audio элемент */
+        .hidden-audio {
+            display: none;
+        }
+        
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            border-radius: 3px;
+            width: 0%;
+        }
+        
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            margin: 0 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .control-btn:hover {
+            color: #4CAF50;
+            transform: scale(1.1);
+        }
+        
+        .play-pause {
+            font-size: 30px;
+            background: #4CAF50;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .play-pause:hover {
+            transform: scale(1.05);
+        }
+        
+        @media (max-width: 480px) {
+            .music-card {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .cover {
+                height: 180px;
+            }
+            
+            .song-title {
+                font-size: 20px;
+            }
+            
+            .artist {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="music-card">
+        <img src="photo_2025-05-31_23-30-46.jpg" alt="Обложка трека" class="cover">
+        
+        <div class="song-info">
+            <h1 class="song-title">Я самый крутой репер</h1>
+            <p class="artist">Kuzya</p>
+        </div>
+        
+        <div class="audio-container">
+            <!-- Аудио элемент скрыт, но присутствует в DOM -->
+            <audio id="audio-player" class="hidden-audio">
+                <source src="Я самый крутой репер.wav" type="audio/mpeg">
+                Ваш браузер не поддерживает аудио элемент.
+            </audio>
+            
+            <div class="progress-container" id="progress-container">
+                <div class="progress" id="progress"></div>
+            </div>
+            
+            <div class="time-info">
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+            
+            <div class="controls">
+                <button class="control-btn" id="prev-btn">⏮</button>
+                <button class="control-btn play-pause" id="play-btn">▶</button>
+                <button class="control-btn" id="next-btn">⏭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audio = document.getElementById('audio-player');
+        const playBtn = document.getElementById('play-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progress = document.getElementById('progress');
+        const progressContainer = document.getElementById('progress-container');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        
+        // Play/pause
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playBtn.innerHTML = '⏸';
+                playBtn.classList.add('playing');
+            } else {
+                audio.pause();
+                playBtn.innerHTML = '▶';
+                playBtn.classList.remove('playing');
+            }
+        }
+        
+        playBtn.addEventListener('click', togglePlay);
+        
+        // Update progress bar
+        function updateProgress(e) {
+            const { duration, currentTime } = e.srcElement;
+            const progressPercent = (currentTime / duration) * 100;
+            progress.style.width = `${progressPercent}%`;
+            
+            // Update time display
+            const durationMinutes = Math.floor(duration / 60);
+            let durationSeconds = Math.floor(duration % 60);
+            if (durationSeconds < 10) durationSeconds = `0${durationSeconds}`;
+            
+            const currentMinutes = Math.floor(currentTime / 60);
+            let currentSeconds = Math.floor(currentTime % 60);
+            if (currentSeconds < 10) currentSeconds = `0${currentSeconds}`;
+            
+            if (duration) {
+                durationEl.textContent = `${durationMinutes}:${durationSeconds}`;
+            }
+            currentTimeEl.textContent = `${currentMinutes}:${currentSeconds}`;
+        }
+        
+        audio.addEventListener('timeupdate', updateProgress);
+        
+        // Set progress
+        function setProgress(e) {
+            const width = this.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            audio.currentTime = (clickX / width) * duration;
+        }
+        
+        progressContainer.addEventListener('click', setProgress);
+        
+        // Song ends
+        audio.addEventListener('ended', () => {
+            playBtn.innerHTML = '▶';
+            playBtn.classList.remove('playing');
+        });
+        
+        // Next and previous buttons (заглушки - можно реализовать свою логику)
+        prevBtn.addEventListener('click', () => {
+            // Здесь можно добавить логику переключения на предыдущий трек
+            audio.currentTime = 0; // Пока просто перематываем в начало
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            // Здесь можно добавить логику переключения на следующий трек
+            audio.currentTime = 0; // Пока просто перематываем в начало
+            audio.play();
+            playBtn.innerHTML = '⏸';
+            playBtn.classList.add('playing');
+        });
+        
+        // Обновляем длительность трека при загрузке метаданных
+        audio.addEventListener('loadedmetadata', () => {
+            const durationMinutes = Math.floor(audio.duration / 60);
+            let durationSeconds = Math.floor(audio.duration % 60);
+            if (durationSeconds < 10) durationSeconds = `0${durationSeconds}`;
+            durationEl.textContent = `${durationMinutes}:${durationSeconds}`;
+        });
+    </script>
+</body>
+</html>
